@@ -1,8 +1,9 @@
 #pragma once
 
-#define EPD_POWER_ON() gpio_write(EPD_ENABLE, 0)
-
-#define EPD_POWER_OFF() gpio_write(EPD_ENABLE, 1)
+// This board has no EPD power-gate (matches the working blozi-etag firmware),
+// so power on/off are no-ops.
+#define EPD_POWER_ON()
+#define EPD_POWER_OFF()
 
 #define EPD_ENABLE_WRITE_CMD() gpio_write(EPD_DC, 0)
 #define EPD_ENABLE_WRITE_DATA() gpio_write(EPD_DC, 1)

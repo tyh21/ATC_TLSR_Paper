@@ -123,11 +123,13 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size, uint8_t fu
     // system power
     EPD_POWER_ON();
     WaitMs(5);
-    // Reset the EPD driver IC
+    // Reset the EPD driver IC.
+    // Full refresh: proper 10ms reset. Partial refresh: keep it short (1ms),
+    // a long hard reset upsets the differential reference used by partial updates.
     gpio_write(EPD_RESET, 0);
-    WaitMs(10);
+    WaitMs(full_or_partial ? 10 : 1);
     gpio_write(EPD_RESET, 1);
-    WaitMs(10);
+    WaitMs(full_or_partial ? 10 : 1);
 
     if (epd_model == 1)
         epd_temperature = EPD_BW_213_Display(image, size, full_or_partial);

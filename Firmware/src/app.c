@@ -21,6 +21,10 @@ RAM int16_t temperature;
 RAM uint8_t hour_refresh = 100;
 RAM uint8_t minute_refresh = 100;
 
+// Refresh the clock every N minutes (1 = every minute). This 3-color panel has
+// no fast partial, so a larger step just means fewer (still flashing) refreshes.
+#define EPD_MINUTE_REFRESH_STEP 1
+
 // Settings
 extern settings_struct settings;
 
@@ -32,8 +36,23 @@ _attribute_ram_code_ void user_init_normal(void)
     init_flash();
     init_nfc();
 
+    // Force the 2.13" 250x122 SSD1680 driver (FPC-A002 / GDEY0213B74).
+    // The auto-detect does not cover this panel and would fall back to the
+    // UC8151C "BW213" driver, which never drives the panel.
+    set_EPD_model(2);
+
+    // Boot indicator: blink the green LED 3x so we can tell the firmware runs.
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        set_led_color(2); // green
+        WaitMs(120);
+        set_led_color(0); // off
+        WaitMs(120);
+    }
+
     // epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
     // epd_display(3334533);
+    //set_EPD_model(2);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -59,7 +78,7 @@ _attribute_ram_code_ void main_loop(void)
     }
 
     uint8_t current_minute = (get_time() / 60) % 60;
-    if (current_minute != minute_refresh)
+    if (current_minute != minute_refresh && (current_minute % EPD_MINUTE_REFRESH_STEP) == 0)
     {
         minute_refresh = current_minute;
         uint8_t current_hour = ((get_time() / 60) / 60) % 24;
